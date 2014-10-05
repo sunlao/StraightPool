@@ -66,7 +66,7 @@ class MNG_Score(object):
 
         return v_score_detla_amt_dict
 
-    def add_foul(self,p_game_dict):
+    def fouls(self,p_game_dict):
         v_player_up         = p_game_dict['player_up']
         v_player_up_nm      = self.__mng_playr_obj.get_player_up_nm(p_game_dict)
         v_foul_flg = "?"
@@ -81,6 +81,44 @@ class MNG_Score(object):
                 v_foul_flg = v_foul_res
             elif v_foul_res == "N":
                 v_foul_flg = v_foul_res
+            else:
+                v_msg = "Please enter a 'Y' or a 'N'"
+                self.__print_control_obj.exe_print_msg(v_msg)
+        self.__json_obj.write_json('game',p_game_dict)
+
+    def racks_run(self,p_game_dict):
+        v_player_up         = p_game_dict['player_up']
+        v_player_up_nm      = self.__mng_playr_obj.get_player_up_nm(p_game_dict)
+        v_balls_on_table    = p_game_dict['balls_on_table']
+
+        v_run_rack_flg = "?"
+        while v_run_rack_flg == "?":
+            v_input_str = "Did %s run a rack? " %(v_player_up_nm)
+            v_rack_run_res  = self.__print_control_obj.exe_print_msg_for_response(v_input_str).upper()
+            if v_rack_run_res == "Y":
+                v_run_rack_count_flg = "?"
+                while v_run_rack_count_flg == "?":
+                    v_input_str = "How many racks did %s run? " %(v_player_up_nm)
+                    v_rack_count_res  = self.__print_control_obj.exe_print_msg_for_response(v_input_str)
+                    try:
+                        v_rack_count_res = int(v_rack_count_res)
+                        if v_rack_count_res > 0:
+                            v_run_rack_count_flg = v_rack_count_res
+                        else:
+                            v_msg = "Please enter a number greater than 0"
+                            self.__print_control_obj.exe_print_msg(v_msg)
+                    except ValueError:
+                        v_msg = "Please enter the number of racks %s ran" %(v_player_up_nm)
+                        self.__print_control_obj.exe_print_msg(v_msg)
+
+                if v_player_up == 1:
+                    p_game_dict['player1_balls_made'] = p_game_dict['player1_balls_made'] + (v_balls_on_table -1)+(14*(v_rack_count_res-1))
+                else:
+                    p_game_dict['player2_balls_made'] = p_game_dict['player2_balls_made'] + (v_balls_on_table -1)+(14*(v_rack_count_res-1))
+                v_run_rack_flg = v_rack_run_res
+                p_game_dict['balls_on_table'] = 15
+            elif v_rack_run_res == "N":
+                v_run_rack_flg = v_rack_run_res
             else:
                 v_msg = "Please enter a 'Y' or a 'N'"
                 self.__print_control_obj.exe_print_msg(v_msg)

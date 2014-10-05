@@ -36,7 +36,6 @@ class MNG_Game_Play(object):
                     elif v_cont_game == 'Y':
                         v_msg = "Last Game Loaded"
                         self.__print_control_obj.exe_print_msg(v_msg)
-                        v_game_dict = self.__json_obj.get_dict('game')
                         self.chk_game_over(v_game_dict)
                         self.play_game(v_game_dict)
                         v_chk_cont_game = v_cont_game
@@ -55,12 +54,12 @@ class MNG_Game_Play(object):
         v_game_status   = p_game_dict['game_status']
         while v_game_status != 'over':
             self.show_game_status(p_game_dict)
-            self.post_end_turn(p_game_dict)
+            self.end_turn(p_game_dict)
             self.chk_game_over(p_game_dict)
             v_game_status = p_game_dict['game_status']
 
     def show_game_status(self,p_game_dict):
-        v_player_up_nm      = self.__mng_playr_obj.get_player_up_nm(p_game_dict)
+        v_player_up_nm  = self.__mng_playr_obj.get_player_up_nm(p_game_dict)
         v_turn_stat     = p_game_dict['turn_stat']
         v_msg = "--%s's turn is %s" %(v_player_up_nm,v_turn_stat)
         self.__print_control_obj.exe_print_msg(v_msg)
@@ -90,18 +89,19 @@ class MNG_Game_Play(object):
             v_msg1 = "**%s's has made %s balls has a score of %s" %(v_player_1_nm,v_player1_balls_made,v_player1_score)
             v_msg2 = "**%s's has made %s balls has a score of %s" %(v_player_2_nm,v_player2_balls_made,v_player2_score)
 
-        v_winner = "?"
+        v_chk_winner = "?"
         if v_player1_score >= v_score_end and v_player1_score > v_player2_score:
-            v_winner = v_player_1_nm
+            v_chk_winner = v_player_1_nm
         elif v_player2_score >= v_score_end and v_player2_score > v_player1_score:
-            v_winner = v_player_2_nm
-        if v_winner != "?":
+            v_chk_winner = v_player_2_nm
+
+        if v_chk_winner != "?":
             p_game_dict['game_status'] = "over"
-            p_game_dict['winner'] = v_winner
+            p_game_dict['winner'] = v_chk_winner
             self.__json_obj.write_json('game',p_game_dict)
             v_msg = "Game is over"
             self.__print_control_obj.exe_print_msg(v_msg)
-            v_msg = "%s is the Winner!" %(v_winner)
+            v_msg = "%s is the Winner!" %(v_chk_winner)
             self.__print_control_obj.exe_print_msg(v_msg)
 
         self.__print_control_obj.exe_print_msg(v_msg1)
@@ -119,13 +119,14 @@ class MNG_Game_Play(object):
             if  v_ball_count_qa == "Y":
                 v_chk_ball_count = v_ball_count_qa
             elif v_ball_count_qa == "N":
-                self.updt_balls_on_table(p_game_dict,v_balls_on_table)
+                self.updt_balls_on_table(p_game_dict)
                 v_chk_ball_count = v_ball_count_qa
             else:
                 v_msg = "Please input a 'Y' or 'N'"
                 self.__print_control_obj.exe_print_msg(v_msg)
 
-    def updt_balls_on_table(self,p_game_dict,p_balls_on_table_at_turn_start):
+    def updt_balls_on_table(self,p_game_dict):
+        v_balls_on_table_at_turn_start = p_game_dict['balls_on_table']
         v_chk_balls_on_table = 0
         while v_chk_balls_on_table == 0:
             v_input_str = "How many balls are on table? "
@@ -137,68 +138,30 @@ class MNG_Game_Play(object):
                 v_msg = "Please enter a number between 1 and %s " %(p_balls_on_table)
                 self.__print_control_obj.exe_print_msg(v_msg)
 
-            if v_balls_on_table >= 1 and v_balls_on_table <= p_balls_on_table_at_turn_start:
-                v_score_delta = p_balls_on_table_at_turn_start - v_balls_on_table
+            if v_balls_on_table >= 1 and v_balls_on_table <= v_balls_on_table_at_turn_start:
+                v_score_delta = v_balls_on_table_at_turn_start - v_balls_on_table
                 if v_score_delta > 0:
                     self.__mng_score_obj.updt_score_delta(p_game_dict,v_score_delta)
                 v_chk_balls_on_table = v_balls_on_table
             else:
-                v_msg = "Please enter a number between 1 and %s " %(p_balls_on_table_at_turn_start)
+                v_msg = "Please enter a number between 1 and %s " %(v_balls_on_table_at_turn_start)
                 self.__print_control_obj.exe_print_msg(v_msg)
 
         p_game_dict['balls_on_table'] = v_balls_on_table
         self.__json_obj.write_json('game',p_game_dict)
 
-    def post_end_turn(self,p_game_dict):
+    def end_turn(self,p_game_dict):
         v_player_up         = p_game_dict['player_up']
         v_player_up_nm      = self.__mng_playr_obj.get_player_up_nm(p_game_dict)
-        v_balls_on_table    = p_game_dict['balls_on_table']
         v_end_turn_flg      = "N"
         while v_end_turn_flg == "N":
             v_input_str     = "Is %s's turn over? " %(v_player_up_nm)
             v_end_turn_res  = self.__print_control_obj.exe_print_msg_for_response(v_input_str).upper()
             if v_end_turn_res == "Y":
                 p_game_dict['turn_stat'] = 'Done'
-                v_run_rack_flg = "?"
-                while v_run_rack_flg == "?":
-                    v_input_str = "Did %s run a rack? " %(v_player_up_nm)
-                    v_rack_res  = self.__print_control_obj.exe_print_msg_for_response(v_input_str).upper()
-                    if v_rack_res == "Y":
-                        v_run_rack_count_flg = "?"
-                        while v_run_rack_count_flg == "?":
-                            v_input_str = "How many racks did %s run? " %(v_player_up_nm)
-                            v_rack_count_res  = self.__print_control_obj.exe_print_msg_for_response(v_input_str)
-                            try:
-                                v_rack_count_res = int(v_rack_count_res)
-                                if v_rack_count_res > 0:
-                                    v_run_rack_count_flg = v_rack_count_res
-                                else:
-                                    v_msg = "Please enter a number greater than 0"
-                                    self.__print_control_obj.exe_print_msg(v_msg)
-                            except ValueError:
-                                v_msg = "Please enter the number of racks %s ran" %(v_player_up_nm)
-                                self.__print_control_obj.exe_print_msg(v_msg)
-                        if v_rack_count_res == 1:
-                            if v_player_up == 1:
-                                p_game_dict['player1_balls_made'] = p_game_dict['player1_balls_made'] + (v_balls_on_table -1)
-                            else:
-                                p_game_dict['player2_balls_made'] = p_game_dict['player2_balls_made'] + (v_balls_on_table -1)
-                        elif v_rack_count_res > 1:
-                            if v_player_up == 1:
-                                p_game_dict['player1_balls_made'] = p_game_dict['player1_balls_made'] + (v_balls_on_table -1)+(14*(v_rack_count_res-1))
-                            else:
-                                p_game_dict['player2_balls_made'] = p_game_dict['player2_balls_made'] + (v_balls_on_table -1)+(14*(v_rack_count_res-1))
-                        v_run_rack_flg = v_rack_res
-                        v_balls_on_table = 15
-                    elif v_rack_res == "N":
-                        v_run_rack_flg = v_rack_res
-                    else:
-                        v_msg = "Please enter a 'Y' or a 'N'"
-                        self.__print_control_obj.exe_print_msg(v_msg)
-                self.__mng_score_obj.add_foul(p_game_dict)
-
-                self.__json_obj.write_json('game',p_game_dict)
-                self.updt_balls_on_table(p_game_dict,v_balls_on_table)
+                self.__mng_score_obj.fouls(p_game_dict)
+                self.__mng_score_obj.racks_run(p_game_dict)
+                self.updt_balls_on_table(p_game_dict)
                 v_end_turn_flg = v_end_turn_res
             else:
                 v_msg = "Please enter a 'Y' when %s's turn is over" %(v_player_up_nm)
