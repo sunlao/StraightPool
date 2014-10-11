@@ -41,7 +41,7 @@ class Init_Game(object):
         if v_player_1_nm == "":
             v_player_1_nm = "Player One"
         else:
-            v_player_1_nm = v_player_1_nm[0:29]
+            v_player_1_nm = v_player_1_nm[0:29].title()
 
         return v_player_1_nm
 
@@ -51,14 +51,14 @@ class Init_Game(object):
         if v_player_2_nm == "":
             v_player_2_nm = "Player Two"
         else:
-            v_player_2_nm = v_player_2_nm[0:29]
+            v_player_2_nm = v_player_2_nm[0:29].title()
         while v_player_2_nm == p_player_1_nm:
             v_input_str     = "Player Two's Name must be different than Player One's Name: "
             v_player_2_nm   = self.__print_control_obj.exe_print_msg_for_response(v_input_str)
             if v_player_2_nm == "":
                 v_player_2_nm = "Player Two"
             else:
-                v_player_2_nm = v_player_2_nm[0:29]
+                v_player_2_nm = v_player_2_nm[0:29].title()
 
         return v_player_2_nm
 
