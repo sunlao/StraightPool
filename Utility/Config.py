@@ -12,7 +12,12 @@ class Config(object):
         return v_dict
 
     def post_config(self,p_key,p_value):
-        if  self.get_value(p_key)!=p_value:
+        try:
+            if  self.get_value(p_key)!=p_value:
+                v_dict = self.get_dict()
+                v_dict[p_key]=p_value
+                self.__json_obj.write_json('config',v_dict)
+        except:
             v_dict = self.get_dict()
             v_dict[p_key]=p_value
             self.__json_obj.write_json('config',v_dict)
